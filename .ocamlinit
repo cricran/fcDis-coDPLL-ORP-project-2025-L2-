@@ -1,0 +1,7 @@
+open Proposition
+open Formule
+open Test
+open Quine
+open FCC
+open FCD
+open FC
