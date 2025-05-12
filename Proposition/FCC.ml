@@ -7,6 +7,13 @@ open Formule
 type fcc =
   | FCC of forme_clausale  (** Type d'une forme clausale conjonctive. *)
 
+(** Inversion d'un signe.*)
+let neg_sign (s : signe) : signe = match s with Plus -> Moins | Moins -> Plus
+
+(** Inversion du signe d'un littéral.*)
+let neg_lit (l : litteral) : litteral =
+  match l with s, str -> (neg_sign s, str)
+
 (** Calcule la conjonction de deux formes clausales conjonctives. *)
 let fcc_conj (fc1 : fcc) (fc2 : fcc) : fcc =
   match (fc1, fc2) with
