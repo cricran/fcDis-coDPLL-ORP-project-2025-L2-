@@ -52,7 +52,7 @@ let rec simplif_quine : formule -> formule = function
           | g' -> Imp (f', g')))
   | Equiv (f, g) -> (
       match simplif_quine f with
-      | Bot -> Non (simplif_quine g)
+      | Bot -> simplif_quine (Non g)
       | Top -> simplif_quine g
       | f' -> (
           match simplif_quine g with
@@ -75,12 +75,12 @@ let rec quine_sat : formule -> bool =
       || quine_sat (simplif_quine (subst Top a f))
 
 (** Teste si une formule est une tautologie, selon l'algorithme de Quine. *)
-let quine_tauto : formule -> bool =
+let rec quine_tauto : formule -> bool =
  fun f ->
   match choix_atome f with
   | None -> ( match simplif_quine f with Top -> true | _ -> false)
   | Some a ->
-      quine_sat (simplif_quine (subst Bot a f))
-      && quine_sat (simplif_quine (subst Top a f))
+      quine_tauto (simplif_quine (subst Bot a f))
+      && quine_tauto (simplif_quine (subst Top a f))
 
 (* Ajouter dans ce fichier les fonctions nécessaires à sa réalisation *)

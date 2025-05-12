@@ -35,8 +35,8 @@ let rec forme_ensembliste (f : formule) : fcc =
   | Non (Atome a) -> FCC (FormeClausale.singleton (Clause.singleton (Moins, a)))
   | Et (a, b) -> fcc_conj (forme_ensembliste a) (forme_ensembliste b)
   | Ou (a, b) -> fcc_disj (forme_ensembliste a) (forme_ensembliste b)
-  | Top -> FCC (FormeClausale.add Clause.empty FormeClausale.empty)
-  | Bot -> FCC FormeClausale.empty
+  | Top -> FCC FormeClausale.empty
+  | Bot -> FCC (FormeClausale.singleton Clause.empty)
   | _ -> failwith "Formule non traitable"
 
 (** Convertit une formule en une forme clausale conjonctive équivalente.*)
@@ -57,7 +57,7 @@ let fcc_to_formule (fcc : fcc) : formule =
                 | Moins, a ->
                     if acc_lit = Top then Non (Atome a)
                     else Ou (Non (Atome a), acc_lit))
-              c Top
+              c Bot
           in
           match acc with Top -> formule_clause | _ -> Et (acc, formule_clause))
         fcc Top
