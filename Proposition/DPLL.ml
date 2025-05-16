@@ -118,5 +118,26 @@ let rec dpll_ex_sat_unit_prop (fc : fcc) : (string * bool) list option =
 (** Renvoie la liste des listes de couples (atome, Booléen) suffisants pour que
     la formule soit vraie, selon l'algorithme DPLL. Utilise la propagation
     unitaire. *)
-let dpll_all_sat_unit_prop (_ : fcc) : (string * bool) list list =
-  failwith "dpll_all_sat_unit_prop : à faire"
+let rec dpll_all_sat_unit_prop (fc : fcc) : (string * bool) list list =
+  match fc with
+  | FCC fc -> (
+      let c = FormeClausale.min_elt_opt fc in
+      match c with
+      | None -> [ [] ]
+      | Some cc when Clause.is_empty cc -> []
+      | Some cc ->
+          let l = Clause.min_elt cc in
+          let res1 =
+            List.map
+              (fun sol -> (snd l, fst l = Plus) :: sol)
+              (dpll_all_sat_unit_prop (simplif_fcc (FCC fc) l))
+          in
+          if not (Clause.cardinal cc = 1) then
+            let l_neg = neg_lit l in
+            let res2 =
+              List.map
+                (fun sol -> (snd l_neg, fst l_neg = Plus) :: sol)
+                (dpll_all_sat_unit_prop (simplif_fcc (FCC fc) l_neg))
+            in
+            res1 @ res2
+          else res1)

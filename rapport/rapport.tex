@@ -1,0 +1,150 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage{graphicx, float, svg} 
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{listings}
+\usepackage[listings,skins]{tcolorbox}
+\usepackage{xcolor}
+
+\usepackage[hyphens]{url}
+\usepackage[pdfauthor = {{Prénom Nom}}, pdftitle = {{Titredocument}},pdfstartview = Fit, pdfpagelayout =
+SinglePage, pdfnewwindow = true, bookmarksnumbered =
+true, breaklinks, colorlinks, linkcolor = red, urlcolor =
+black, citecolor = cyan, linktoc = all]{hyperref}
+
+\usepackage[a4paper,margin=2.5cm]{geometry}
+
+\renewcommand{\familydefault}{\sfdefault}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{codeblue}{rgb}{0.0, 0.4, 0.8}
+\definecolor{darkWhite}{rgb}{0.90,0.90,0.90}
+
+\lstdefinestyle{bigCode}{
+    backgroundcolor=\color{darkWhite},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{codeblue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    language=bash,
+    morekeywords={free,malloc,nullptr,calloc,memcpy,realloc,bool,size_t,true,false}
+}
+
+\lstset{style=bigCode}
+
+
+
+\NewTotalTCBox{\commandbox}{ s v }
+{verbatim,colupper=black,colback=darkWhite!75!white,colframe=white,left=0pt,boxsep=0px,right=0pt,top=2px,bottom=2px}
+{\IfBooleanT{#1}{\textcolor{red}{\ttfamily\bfseries > }}%
+\lstinline[language=php,morekeywords={free,malloc,nullptr,calloc,memcpy,realloc,bool,size_t,true,false},keywordstyle=\color{codeblue}\bfseries]^#2^}
+
+\newcommand{\code}{\commandbox}
+
+\title{Rapport projet d'ORP} \author{Tristan GROULT} \date{\today}
+
+\begin{document}
+
+\begin{figure}[t] \centering \begin{minipage}{0.3\textwidth} \centering \includegraphics[width=1\textwidth]{logo_univ.png} \end{minipage} \hfill \begin{minipage}{0.3\textwidth} \centering \includegraphics[width=1\textwidth]{ufr_logo.png} \end{minipage} \end{figure}
+
+\maketitle
+
+\clearpage\setcounter{page}{2}
+
+{ 
+\hypersetup{hidelinks} % Sommaire en "noir" 
+\renewcommand{\contentsname}{Sommaire} 
+\tableofcontents % Affichage du sommaire 
+}
+
+\clearpage
+
+\section{Introduction}
+
+La transformation d'une formule en une forme clausale conjonctive, interprétée comme une conjonction de disjonctions de littéraux, est une étape nécessaire pour l'application de l'algorithme DPLL permettant de décider de la satisfaisabilité d'une formule.
+
+Il est possible d'adapter l'algorithme pour l'utiliser sur des formes clausales disjonctives menant à un algorithme que nous appellerons coDPLL.
+
+Le but de ce projet est d'étudier la mise en forme clausale disjonctive et de proposer une modification adaptée depuis l'algorithme DPLL, puis de tester les résultats obtenus à l'aide d'un générateur aléatoire de formules.
+
+Nous considèrerons des formules de la logique propositionnelle utilisant les opérateurs classiques (négation, conjonction, disjonction, implication, vrai et faux) ainsi que l'opérateur d'équivalence.
+
+\section{Forme clausale}
+
+Une forme clausale disjonctive est évaluée comme la disjonction des clauses qu'elle contient, et une clause est évaluée comme la conjonction des littéraux qu'elle contient.
+
+Par exemple, la forme clausale disjonctive $\{ \{ a, b\} , \{ \lnot a,\lnot c \} , \{ \lnot c,\lnot b\} , \{ c\} \} $ est constituée de quatre clauses et est évaluée comme la formule $(a \land b) \lor (\lnot a \land \lnot c) \lor (\lnot c \land \lnot b) \lor c $.
+
+\begin{itemize} \item la forme clausale vide est interprétée comme l'élément neutre de la disjonction, c'est-à-dire $\top$ \item la clause vide est interprétée comme l'élément neutre de la conjonction, c'est-à-dire $\bot$ 
+\end{itemize}
+
+\vspace{5mm}
+
+La mise en forme clausale suit les mêmes étapes pour les formes clausales conjonctives et pour les formes clausales disjonctives.
+
+Le \textit{retrait des négations} et \textit{la descente des négations} étant les mêmes car ne dépendant pas de la forme ensembliste finale, les fonctions \code{retrait_operateurs} et \code{descente_non} sont placées dans le même fichier \code{FC.ml}, global pour la gestion des formes clausales.
+
+L'étape qui change est la \textit{mise en forme ensembliste}. C'est à cette étape que la forme clausale est formée. Deux fonctions sont donc nécessaires pour gérer les deux mises en forme ensemblistes. La nouvelle fonction \code{forme_ensembliste} pour la forme clausale disjonctive, calcule alors inductivement :
+
+\begin{itemize} 
+    \item les atomes niés $\lnot a$ sont transformés en forme clausale contenant la clause réduite au littéral négatif $\{\{\lnot a\}\}$; 
+    \item les atomes non niés $a$ sont transformés en forme clausale contenant la clause réduite au littéral positif $\{\{a\}\}$ 
+    \item l'opérateur $\bot $ est remplacé par la forme clausale vide $\varnothing $ ; 
+    \item l'opérateur $\top $ est remplacé par la forme clausale contenant la clause vide $\{\varnothing\}$ ; 
+    \item la disjonction de deux formes clausales $\{C_1, \ldots, C_n\}$ et $\{C'_1, \ldots, C'_m\}$ correspond à leur union, c'est-à-dire $\{C_1, \ldots, C_n, C'_1, \ldots, C'_m\}$ par associativité, commutativité et idempotence de la disjonction ; 
+    \item la conjonction de deux formes clausales $\{C_1, \ldots, C_n\}$ et $\{C'_1, \ldots, C'_m\}$ correspond à la combinaison cartésienne de leurs clauses, c'est-à-dire
+    $\{C_1 \cup C'_1, \ldots, C_1 \cup C'_m, \ldots, C_n \cup C'_1, \ldots, C_n \cup C'_m\}$ 
+    par distributivité de $\land$ sur $\lor$ ; \end{itemize}
+
+\vspace{5mm}
+
+Les fonctions \code{fcd_to_formule} et \code{fcc_to_formule} parcourent la forme clausale sur laquelle elles sont appelées en réalisant :
+
+\begin{itemize} \item La disjonction des clauses de conjonction des littéraux pour la forme clausale disjonctive \item La conjonction des clauses de disjonction des littéraux pour la forme clausale conjonctive \end{itemize}
+
+\section{Algorithme coDPLL}
+
+L'algorithme basique pour coDPLL est basé sur l'algorithme basique de DPLL. Pour appliquer cet algorithme, il faut savoir déterminer la simplification d'une forme clausale disjonctive $\mathcal{F} $ si on considère un littéral $l$ comme vrai (et donc $l'$ à faux). Cette forme simplifiée s'obtient donc en éliminant de $\mathcal{F} $ les clauses contenant $l'$ et en éliminant $l$ des clauses restantes.
+
+\begin{figure}[H] \centering \begin{tcolorbox}[enhanced, colback=white, colframe=codeblue, fonttitle=\bfseries, title=Algorithme basique coDPLL, boxrule=2pt, width=0.9\textwidth]
+
+Teste la satisfaisabilité d'une forme clausale disjonctive $\mathcal{F} $ \vspace{5mm}
+
+\begin{enumerate}
+
+\item Si $\mathcal{F} $ est vide, renvoyer \code{faux}
+\item Sinon, si la clause vide appartient à $\mathcal{F} $, renvoyer \code{vrai}
+\item Sinon, choisir une clause $C$ de $\mathcal{F} $ et un littéral $l$ de $C$. En considérant $l'$ le littéral complémentaire de $l$ :
+\begin{enumerate}
+    \item Simplifier $\mathcal{F} $ en considérant l'hypothèse que $l$ est vrai (et donc que $l'$ est faux), ce qui donne $\mathcal{F}' $. Si $\mathcal{F}' $ est satisfaisable (déterminé récursivement), renvoie \code{vrai}.
+    \item Simplifier $\mathcal{F} $ en considérant l'hypothèse que $l$ est faux (et donc que $l'$ est vrai), ce qui donne $\mathcal{F}'' $. Si $\mathcal{F}'' $ est satisfaisable (déterminé récursivement), renvoie \code{vrai} sinon \code{faux}.
+\end{enumerate}
+\end{enumerate} \end{tcolorbox} \end{figure}
+
+\section{Module Test}
+
+Le module test, grâce à la fonction \code{test_log} permet un affichage de différents tests nous permettant de vérifier la validité de nos implantations.
+
+Pour cela, nous avons dû développer les fonctions \code{correct_ex_sat} et \code{correct_all_sat} permettant de vérifier la validité des fonctions d'application de l'algorithme DPLL renvoyant un/des témoin(s) pour que la formule soit satisfaisable.
+
+Ces 2 fonctions réalisent donc l'évaluation de la fonction qui leur est passée en paramètres à partir d'une interprétation basée sur les témoins qui leur sont donnés afin de vérifier leur validité. Nous avons décidé ici d'utiliser la fonction \code{eval} déjà écrite précédemment en TP dans le module formule et d'inclure avec cela le type \code{interpretation} de forme \code{type interpretation = string -> bool}.
+
+Ce type \code{interpretation} est utilisé dans plusieurs fonctions permettant la réalisation d'une fonction d'interprétation à partir des témoins passés en paramètres ou à partir de listes d'atomes d'une formule.
+
+La vérification est ensuite faite en suivant les algorithmes définis dans la documentation.
+
+\end{document}
+

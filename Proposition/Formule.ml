@@ -44,4 +44,31 @@ let rec eval (i : interpretation) (f : formule) : bool =
   | Equiv (sg, sd) -> eval i sg = eval i sd
   | Non sa -> not (eval i sa)
 
-(* Ajouter dans ce fichier les fonctions nécessaires à sa réalisation *)
+(** Transforme une liste de couples string*bool en une interprétation. *)
+let interpretation_of_map (l : (string * bool) list) : interpretation = function
+  | s -> (
+      match List.find_opt (fun (x, _) -> x = s) l with
+      | Some (_, b) -> b
+      | None -> false)
+
+(** Transforme une liste de couples string en une interprétation. *)
+let interpretation_of_list (l : string list) : interpretation = function
+  | s -> List.mem s l
+
+(** Calcule la liste (triée et sans doublon) des atomes d'une formule.*)
+let rec atomes (f : formule) : string list =
+  match f with
+  | Atome s -> [ s ]
+  | Imp (sg, sd) | Ou (sg, sd) | Et (sg, sd) | Equiv (sg, sd) ->
+      atomes sg @ atomes sd
+  | Non sa -> atomes sa
+  | Bot | Top -> []
+
+(** Calcule la liste de toutes les sous-listes d'une liste donnée. *)
+let rec all_sublists lst =
+  match lst with
+  | [] -> [ [] ]
+  | hd :: tl ->
+      let subNoHd = all_sublists tl in
+      let subHd = List.map (fun sub -> hd :: sub) subNoHd in
+      subNoHd @ subHd

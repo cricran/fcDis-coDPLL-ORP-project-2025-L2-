@@ -83,4 +83,7 @@ let rec quine_tauto : formule -> bool =
       quine_tauto (simplif_quine (subst Bot a f))
       && quine_tauto (simplif_quine (subst Top a f))
 
+(** Teste si une formule est une contradiction, selon l'algorithme de Quine. *)
+let quine_contra : formule -> bool = fun f -> not (quine_sat f)
+
 (* Ajouter dans ce fichier les fonctions nécessaires à sa réalisation *)

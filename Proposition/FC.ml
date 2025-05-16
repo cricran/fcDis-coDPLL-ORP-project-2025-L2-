@@ -10,6 +10,13 @@ type signe = Plus | Moins
 type litteral = signe * string
 (** Type d'un littéral : produit d'un signe et d'un atome (string). *)
 
+(** Inversion d'un signe.*)
+let neg_sign (s : signe) : signe = match s with Plus -> Moins | Moins -> Plus
+
+(** Inversion du signe d'un littéral.*)
+let neg_lit (l : litteral) : litteral =
+  match l with s, str -> (neg_sign s, str)
+
 (** Le module Clause permet de manipuler les ensembles de littéraux. Il est
     généré via le foncteur Set.Make. *)
 module Clause = Set.Make (struct
@@ -72,7 +79,7 @@ let rec descente_non (f : formule) : formule =
   match f with
   | Non (Et (ad, ag)) -> Ou (descente_non (Non ad), descente_non (Non ag))
   | Non (Ou (ad, ag)) -> Et (descente_non (Non ad), descente_non (Non ag))
-  | Non (Non a) -> a
+  | Non (Non a) -> descente_non a
   | Non Bot -> Top
   | Non Top -> Bot
   | Et (ad, ag) -> Et (descente_non ad, descente_non ag)
